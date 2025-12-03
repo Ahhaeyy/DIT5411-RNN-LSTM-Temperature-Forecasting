@@ -181,9 +181,57 @@ error_distribution.png
 Histogram of prediction errors for all three models.
 
 Helps identify days with larger deviations, often corresponding to rapid temperature drops or transitional periods between seasons.
+=======
+Generate train/test sequences (45-day window → next-day prediction)
+
+Train RNN, LSTM, and BiLSTM models
+
+Evaluate each model using MAE and RMSE
+
+Save trained models into the models/ directory
+
+Produce visualisation plots in the figures/ directory
+
+### 4. Optional hyperparameter tuning
+
+Run:
+python hyperparameter_tuning.py
+
+This experiment tests different sliding-window lengths (30, 45, 60 days). The final project uses a 45-day window, which produced stable and consistent results.
+
+## Evaluation Results (2025 Test Set)
+
+Model	MAE (°C)	RMSE (°C)
+RNN	1.02	1.35
+LSTM	1.10	1.40
+BiLSTM	1.14	1.42
+
+Training configuration:
+
+Optimizer: Adam
+
+Loss: Mean Squared Error (MSE)
+
+Epochs: 80
+
+Batch size: 32
+
+Sliding window: 45 days
+
+## Visualisations
+
+### actual_vs_predicted.png
+
+A comparison of actual 2025 temperatures with predictions from RNN, LSTM, and BiLSTM. All models capture the overall seasonal trend, including winter lows and summer highs.
+
+### error_distribution.png
+
+A histogram showing prediction errors from all three models. This visualisation highlights days with unusually large deviations, often related to rapid temperature drops or seasonal transitions.
+>>>>>>> da4826166769f200ea7c61d7a66faaf2d50fea9e
 
 If desired, these figures can be embedded in Markdown:
 
+<<<<<<< HEAD
 ![Actual vs Predicted Grass Minimum Temperature](figures/actual_vs_predicted.png)
 
 ![Prediction Error Distribution](figures/error_distribution.png)
@@ -275,3 +323,4 @@ Evaluating probabilistic forecasts (prediction intervals) instead of point predi
 
 Hong Kong Observatory — Daily Grass Minimum Temperature
 https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-grass-min-temp
+>>>>>>> da4826166769f200ea7c61d7a66faaf2d50fea9e
