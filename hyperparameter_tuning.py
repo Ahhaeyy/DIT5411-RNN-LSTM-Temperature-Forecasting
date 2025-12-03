@@ -1,31 +1,55 @@
+"""
+DIT5411 Machine Learning Project  
+Hyperparameter Tuning for Sliding Window Length
+
+This script evaluates different sequence lengths (window sizes)
+to determine which provides the best forecasting performance.
+It follows the project PDF requirement:
+ - Training data: 1980–2024
+ - Testing data: 2025-01-01 to 2025-10-30
+"""
+
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error
-from sequence_generator import create_sequences
+from sequence_generator import get_train_test_data
 from models_rnn_lstm import create_rnn_model
 
-df = pd.read_csv("processed_HKO_GMT_ALL.csv")
-values = df["Value"].values.reshape(-1,1)
 
-scaler = MinMaxScaler()
-scaled = scaler.fit_transform(values)
+def tune_sequence_length():
+    """
+    Test different sliding window sizes using date-based splitting.
+    Only the RNN model is used here for simplicity, as required by the project.
+    """
 
-sequence_lengths = [30, 45, 60]
+    window_sizes = [30, 45, 60]  # Hyperparameter candidates
 
-for n_steps in sequence_lengths:
-    print(f"\nTesting sequence length = {n_steps}")
+    for window_size in window_sizes:
+        print(f"\n=== Testing window size: {window_size} days ===")
 
-    X, y = create_sequences(scaled, n_steps)
-    split = int(len(X) * 0.8)
-    X_train, X_test = X[:split], X[split:]
-    y_train, y_test = y[:split], y[split:]
+        # Load train/test sets according to project PDF rules
+        X_train, y_train, X_test, y_test, scaler, test_dates = get_train_test_data(window_size)
 
-    model = create_rnn_model(n_steps)
-    model.fit(X_train, y_train, epochs=20, batch_size=32, verbose=0)
+        # Build RNN model
+        model = create_rnn_model(window_size)
 
-    pred = model.predict(X_test)
-    pred_inv = scaler.inverse_transform(pred)
-    y_test_inv = scaler.inverse_transform(y_test)
+        # Train model
+        model.fit(
+            X_train, y_train,
+            epochs=20,
+            batch_size=32,
+            validation_split=0.1,
+            verbose=0
+        )
 
-    mae = mean_absolute_error(y_test_inv, pred_inv)
-    print("MAE:", mae)
+        # Predict on test set
+        preds = model.predict(X_test)
+        preds_inv = scaler.inverse_transform(preds)
+        y_test_inv = scaler.inverse_transform(y_test)
+
+        # Compute MAE
+        mae = mean_absolute_error(y_test_inv, preds_inv)
+        print(f"MAE for window size {window_size}: {mae:.4f}")
+
+
+if __name__ == "__main__":
+    tune_sequence_length()

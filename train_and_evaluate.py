@@ -2,35 +2,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from sequence_generator import create_sequences
+from sequence_generator import get_train_test_data
 from models_rnn_lstm import create_rnn_model, create_lstm_model, create_bilstm_model
 
 
 def main():
 
-    # ----------------------------------
-    # Load processed dataset
-    # ----------------------------------
-    df = pd.read_csv("processed_HKO_GMT_ALL.csv")
-    values = df["Value"].values.reshape(-1, 1)
-
-    # Normalize dataset
-    scaler = MinMaxScaler()
-    scaled = scaler.fit_transform(values)
-
-    # Sequence window size
+    # ======================================================
+    # Load dataset according to PDF requirement:
+    # Train: 1980–2024
+    # Test: 2025-01-01 to 2025-10-30
+    # ======================================================
     window_size = 45
-
-    # Create input sequences
-    X, y = create_sequences(scaled, window_size)
-
-    # Train-test split (80% train, 20% test)
-    split = int(len(X) * 0.8)
-    X_train, X_test = X[:split], X[split:]
-    y_train, y_test = y[:split], y[split:]
+    X_train, y_train, X_test, y_test, scaler, test_dates = get_train_test_data(window_size)
 
     # Inverse-scale true labels
     y_test_inv = scaler.inverse_transform(y_test)
@@ -47,7 +33,6 @@ def main():
         validation_split=0.1,
         verbose=1
     )
-
     y_pred_rnn = rnn.predict(X_test)
     y_pred_rnn_inv = scaler.inverse_transform(y_pred_rnn)
     rnn.save("models/rnn_model.h5")
@@ -64,7 +49,6 @@ def main():
         validation_split=0.1,
         verbose=1
     )
-
     y_pred_lstm = lstm.predict(X_test)
     y_pred_lstm_inv = scaler.inverse_transform(y_pred_lstm)
     lstm.save("models/lstm_model.h5")
@@ -72,7 +56,7 @@ def main():
     # ======================================================
     # 3. Train Bidirectional LSTM
     # ======================================================
-    print("\nTraining Bidirectional LSTM...")
+    print("\nTraining BiLSTM...")
     bilstm = create_bilstm_model(window_size)
     bilstm.fit(
         X_train, y_train,
@@ -81,7 +65,6 @@ def main():
         validation_split=0.1,
         verbose=1
     )
-
     y_pred_bilstm = bilstm.predict(X_test)
     y_pred_bilstm_inv = scaler.inverse_transform(y_pred_bilstm)
     bilstm.save("models/bilstm_model.h5")
@@ -111,13 +94,13 @@ def main():
     # Plot Actual vs Predicted
     # ======================================================
     plt.figure(figsize=(14, 5))
-    plt.plot(y_test_inv, label="Actual")
-    plt.plot(y_pred_rnn_inv, label="RNN")
-    plt.plot(y_pred_lstm_inv, label="LSTM")
-    plt.plot(y_pred_bilstm_inv, label="BiLSTM")
+    plt.plot(test_dates, y_test_inv, label="Actual")
+    plt.plot(test_dates, y_pred_rnn_inv, label="RNN")
+    plt.plot(test_dates, y_pred_lstm_inv, label="LSTM")
+    plt.plot(test_dates, y_pred_bilstm_inv, label="BiLSTM")
 
-    plt.title("Actual vs Predicted Grass Minimum Temperature")
-    plt.xlabel("Days")
+    plt.title("Actual vs Predicted Grass Minimum Temperature (2025 Test Set)")
+    plt.xlabel("Date")
     plt.ylabel("Temperature (°C)")
     plt.legend()
     plt.tight_layout()
@@ -132,7 +115,7 @@ def main():
     plt.hist(y_test_inv - y_pred_lstm_inv, bins=40, alpha=0.5, label="LSTM")
     plt.hist(y_test_inv - y_pred_bilstm_inv, bins=40, alpha=0.5, label="BiLSTM")
 
-    plt.title("Prediction Error Distribution")
+    plt.title("Prediction Error Distribution (2025 Test Set)")
     plt.xlabel("Error (°C)")
     plt.ylabel("Frequency")
     plt.legend()

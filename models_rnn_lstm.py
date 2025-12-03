@@ -1,40 +1,78 @@
-# This file defines three deep learning models:
-# 1. Simple RNN
-# 2. LSTM with dropout
-# 3. Bidirectional LSTM (optional advanced model)
+"""
+Model Definitions for DIT5411 Machine Learning Project
+
+This module defines:
+ - Simple RNN model (baseline)
+ - LSTM model (advanced)
+ - Bidirectional LSTM model (optional extension)
+
+All models use:
+ - Sequence-to-one prediction
+ - Adam optimizer
+ - MSE loss
+"""
 
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import SimpleRNN, LSTM, Bidirectional, Dropout, Dense
+from tensorflow.keras.layers import Input, SimpleRNN, LSTM, Bidirectional, Dropout, Dense
 
+
+# ------------------------------------------------------------
+# Baseline RNN
+# ------------------------------------------------------------
 def create_rnn_model(window_size):
-    model = Sequential()
-    model.add(SimpleRNN(64, activation="tanh", input_shape=(window_size, 1)))
-    model.add(Dense(32, activation="relu"))
-    model.add(Dense(1))
+    """
+    Create a simple RNN model (baseline model).
+    """
+    model = Sequential([
+        Input(shape=(window_size, 1)),
+        SimpleRNN(64, activation="tanh"),
+        Dense(32, activation="relu"),
+        Dense(1)
+    ])
+
     model.compile(optimizer=tf.keras.optimizers.Adam(0.001),
                   loss="mse",
                   metrics=["mae"])
     return model
 
+
+# ------------------------------------------------------------
+# LSTM (advanced model)
+# ------------------------------------------------------------
 def create_lstm_model(window_size):
-    model = Sequential()
-    model.add(LSTM(64, activation="tanh", input_shape=(window_size, 1)))
-    model.add(Dropout(0.2))
-    model.add(Dense(32, activation="relu"))
-    model.add(Dense(1))
+    """
+    Create an LSTM model with dropout.
+    """
+    model = Sequential([
+        Input(shape=(window_size, 1)),
+        LSTM(64, activation="tanh"),
+        Dropout(0.2),
+        Dense(32, activation="relu"),
+        Dense(1)
+    ])
+
     model.compile(optimizer=tf.keras.optimizers.Adam(0.001),
                   loss="mse",
                   metrics=["mae"])
     return model
 
+
+# ------------------------------------------------------------
+# Optional Extension: Bidirectional LSTM
+# ------------------------------------------------------------
 def create_bilstm_model(window_size):
-    model = Sequential()
-    model.add(Bidirectional(LSTM(64, return_sequences=False),
-                            input_shape=(window_size, 1)))
-    model.add(Dropout(0.2))
-    model.add(Dense(32, activation="relu"))
-    model.add(Dense(1))
+    """
+    Create a Bidirectional LSTM model.
+    """
+    model = Sequential([
+        Input(shape=(window_size, 1)),
+        Bidirectional(LSTM(64)),
+        Dropout(0.2),
+        Dense(32, activation="relu"),
+        Dense(1)
+    ])
+
     model.compile(optimizer=tf.keras.optimizers.Adam(0.001),
                   loss="mse",
                   metrics=["mae"])
