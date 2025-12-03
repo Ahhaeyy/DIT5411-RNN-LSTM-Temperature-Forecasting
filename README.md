@@ -182,8 +182,6 @@ Histogram of prediction errors for all three models.
 
 Helps identify days with larger deviations, often corresponding to rapid temperature drops or transitional periods between seasons.
 
-If desired, these figures can be embedded in Markdown:
-
 ![Actual vs Predicted Grass Minimum Temperature](figures/actual_vs_predicted.png)
 
 ![Prediction Error Distribution](figures/error_distribution.png)
