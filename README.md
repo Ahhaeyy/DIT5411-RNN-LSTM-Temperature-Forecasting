@@ -1,170 +1,115 @@
-<h1>DIT5411 Machine Learning Project</h1>
-<h2>Forecasting Hong Kong Daily Grass Minimum Temperature using RNN, LSTM, and BiLSTM</h2>
-
-This project develops and compares three deep learning models—Simple RNN, LSTM, and Bidirectional LSTM—to forecast Hong Kong’s daily grass minimum temperature using historical data from the Hong Kong Observatory (HKO). The workflow follows the official DIT5411 Machine Learning Project requirements, including data preprocessing, sequence generation, model development, evaluation, visualisation, and documentation.
-
-<h2>Table of Contents</h2>
-
-- Project Overview  
-- Dataset and Preprocessing  
-- Project Structure  
-- Model Architectures  
-- Training and Evaluation  
-- Results  
-- Visualisations  
-- How to Run the Project  
-- Discussion and Future Work  
-- Dataset Reference  
+<h1>Hong Kong Daily Minimum Grass Temperature Forecasting</h1>
 
 <h2>Project Overview</h2>
+This project applies Deep Learning techniques to forecast daily grass minimum temperatures in Hong Kong. As part of the <strong>DIT5411 Machine Learning</strong> course, we implement and compare three different time-series models:
+1.  <strong>Simple RNN</strong> (Baseline)
+2.  <strong>LSTM</strong> (Long Short-Term Memory)
+3.  <strong>BiLSTM</strong> (Bidirectional LSTM)
 
-Grass minimum temperature is an important meteorological indicator reflecting radiative cooling and seasonal variation. The dataset is smooth, highly seasonal, and predictable, making it suitable for sequential deep learning models.
+The goal is to analyze historical data (1980-2024) to predict temperature trends for the "future" period (Jan - Oct 2025).
 
-This project includes:
+<h2>Dataset</h2>
+<ul>
+  <li><strong>Source</strong>: Hong Kong Observatory via <a href="https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-grass-min-temp">data.gov.hk</a></li>
+  <li><strong>Target Variable</strong>: Daily Grass Minimum Temperature (°C)</li>
+  <li><strong>Data Split</strong>:
+    <ul>
+      <li><strong>Training</strong>: 1980 - 2024</li>
+      <li><strong>Testing</strong>: Jan 1, 2025 - Oct 30, 2025</li>
+    </ul>
+  </li>
+</ul>
 
-- Training models using data from 1980–2024  
-- Testing on unseen data from 2025-01-01 to 2025-10-30  
-- Comparing RNN, LSTM, and BiLSTM performance  
-- Analysing prediction errors  
-- Documenting the entire workflow in GitHub  
+<h2>Repository Structure</h2>
+<pre>
+├── daily_HKO_GMT_ALL.csv      # Raw dataset (Input)
+├── processed_HKO_GMT_ALL.csv  # Preprocessed dataset (Output of preprocessing)
+├── data_preprocessing.py      # Script for data cleaning, interpolation, and normalization
+├── sequence_generator.py      # Helper for creating sliding window sequences
+├── models_rnn_lstm.py         # Keras definitions for RNN, LSTM, and BiLSTM architectures
+├── train_and_evaluate.py      # Main script: trains models and generates evaluation metrics/plots
+├── hyperparameter_tuning.py   # Script for finding optimal model parameters
+├── rnn_model.h5               # Saved weights for the RNN model
+├── lstm_model.h5              # Saved weights for the LSTM model
+├── bilstm_model.h5            # Saved weights for the BiLSTM model
+└── README.md                  # Project documentation
+</pre>
 
-<h2>Dataset and Preprocessing</h2>
+<h2>Installation</h2>
+Ensure you have Python 3.8+ installed. Install the required dependencies:
 
-Source: Hong Kong Observatory Daily Grass Minimum Temperature dataset.
+<pre>
+pip install numpy pandas matplotlib scikit-learn tensorflow
+</pre>
 
-Main preprocessing steps:
+<h2>Usage Instructions</h2>
 
-- Load the raw CSV (`daily_HKO_GMT_ALL.csv`).  
-- Parse date fields and construct a continuous daily time index.  
-- Handle missing values using time-based interpolation.  
-- Restrict the usable range from 1980-01-01 to 2025-10-30.  
-- Save the cleaned series as `processed_HKO_GMT_ALL.csv`.  
-
-For modelling, the data are transformed into supervised learning samples using a sliding window of 45 days to predict the next day’s grass minimum temperature.
-
-<h2>Project Structure</h2>
-
-```
-Project/
-├── daily_HKO_GMT_ALL.csv          # Raw HKO dataset
-├── processed_HKO_GMT_ALL.csv      # Cleaned dataset
-├── data_preprocessing.py          # Cleaning, interpolation, datetime handling
-├── sequence_generator.py          # Sliding-window (45 days) sequence generation
-├── models_rnn_lstm.py             # RNN, LSTM, BiLSTM model definitions
-├── train_and_evaluate.py          # Training, evaluation, visualisation
-├── hyperparameter_tuning.py       # Optional: window size experiments (30/45/60)
-├── models/
-│   ├── rnn_model.h5
-│   ├── lstm_model.h5
-│   └── bilstm_model.h5
-└── figures/
-    ├── actual_vs_predicted.png
-    └── error_distribution.png
-```
-
-<h2>Model Architectures</h2>
-
-All models use a sequence-to-one setup with a 45-day input sequence predicting the next day’s temperature.
-
-**1. Simple RNN (Baseline)**  
-- SimpleRNN(100, return_sequences=True)  
-- SimpleRNN(100)  
-- Dense(1)
-
-**2. LSTM (Advanced Model)**  
-- LSTM(100, return_sequences=True)  
-- Dropout(0.2)  
-- LSTM(100)  
-- Dropout(0.2)  
-- Dense(1)
-
-**3. Bidirectional LSTM (Optional Extension)**  
-- Bidirectional(LSTM(100, return_sequences=True))  
-- Dropout(0.2)  
-- Bidirectional(LSTM(100))  
-- Dropout(0.2)  
-- Dense(1)
-
-Optimizer: Adam  
-Loss: MSE  
-Metric: MAE  
-
-<h2>Training and Evaluation</h2>
-
-Training settings:
-- Epochs: 80  
-- Batch size: 32  
-- Validation split: 0.1  
-- Train/test split based on dates  
-- Window size: 45  
-
-Models are evaluated on the 2025 dataset.
-
-<h2>Results (2025 Test Set)</h2>
-
-| Model | MAE | RMSE |
-|-------|------|--------|
-| RNN | 1.4411 | 1.7119 |
-| LSTM | 0.9216 | 1.2611 |
-| BiLSTM | 0.9520 | 1.2650 |
-
-LSTM achieves the best performance. BiLSTM performs similarly but slightly worse, while RNN performs noticeably worse due to limited ability to capture long-term dependencies.
-
-<h2>Visualisations</h2>
-
-Figures generated by `train_and_evaluate.py`:
-
-- `actual_vs_predicted.png`  
-- `error_distribution.png`
-
-Use:
-
-```
-![Actual vs Predicted](figures/actual_vs_predicted.png)
-![Error Distribution](figures/error_distribution.png)
-```
-
-<h2>How to Run the Project</h2>
-
-<h3>Install dependencies</h3>
-
-```
-pip install pandas numpy scikit-learn tensorflow matplotlib
-```
-
-<h3>Preprocess the dataset</h3>
-
-```
+<h3>Step 1: Data Preprocessing</h3>
+Run the preprocessing script to clean the raw data, handle missing values, and normalize features.
+<pre>
 python data_preprocessing.py
-```
+</pre>
+<em>Output: <code>processed_HKO_GMT_ALL.csv</code></em>
 
-<h3>Train and evaluate models</h3>
-
-```
+<h3>Step 2: Training and Evaluation</h3>
+Run the main script to train all three models (RNN, LSTM, BiLSTM) and evaluate them on the 2025 test set. This will also generate comparison plots.
+<pre>
 python train_and_evaluate.py
-```
+</pre>
 
-<h3>Optional: hyperparameter tuning</h3>
-
-```
+<h3>Step 3: Hyperparameter Tuning (Optional)</h3>
+If you wish to experiment with different configurations:
+<pre>
 python hyperparameter_tuning.py
-```
+</pre>
 
-<h2>Discussion</h2>
+<h2>Results (Test Period: 2025)</h2>
 
-- LSTM performs best because it captures long-term seasonal patterns and avoids vanishing gradients.  
-- RNN struggles with long sequences and provides the highest errors.  
-- BiLSTM does not outperform LSTM because forecasting is a **causal** task; backward sequence processing does not provide useful future context.  
-- Errors increase during rapid temperature changes or seasonal transitions.
+Models were evaluated using <strong>Mean Absolute Error (MAE)</strong> and <strong>Root Mean Squared Error (RMSE)</strong>.
 
-<h2>Future Work</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>MAE (°C)</th>
+      <th>RMSE (°C)</th>
+      <th>Performance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RNN (Baseline)</strong></td>
+      <td>1.4411</td>
+      <td>1.7119</td>
+      <td>Baseline</td>
+    </tr>
+    <tr>
+      <td><strong>LSTM</strong></td>
+      <td><strong>0.9216</strong></td>
+      <td><strong>1.2611</strong></td>
+      <td><strong>Best</strong></td>
+    </tr>
+    <tr>
+      <td><strong>BiLSTM</strong></td>
+      <td>0.9520</td>
+      <td>1.2650</td>
+      <td>Competitive</td>
+    </tr>
+  </tbody>
+</table>
 
-- Use additional climate features (humidity, cloud cover, etc.)  
-- Test GRU, CNN-LSTM, or attention-based models  
-- Tune dropout, learning rate, and window sizes  
-- Add probabilistic forecasting  
+<h3>Analysis</h3>
+<ul>
+  <li><strong>LSTM</strong> achieved the best performance, significantly outperforming the simple RNN. This demonstrates the LSTM's superior ability to capture long-term dependencies and seasonal patterns in meteorological data over a 60-day lookback window.</li>
+  <li><strong>BiLSTM</strong> performed similarly to the standard LSTM but did not yield a significant improvement, suggesting that future context within the training window was less critical for this specific forecasting task.</li>
+</ul>
 
-<h2>Dataset Reference</h2>
+<h2>Contributors</h2>
+<ul>
+  <li><strong>[Your Name]</strong> - [Student ID]</li>
+  <li><strong>[Teammate Name]</strong> - [Student ID]</li>
+  <li><strong>[Teammate Name]</strong> - [Student ID]</li>
+</ul>
 
-Hong Kong Observatory — Daily Grass Minimum Temperature  
-https://data.gov.hk/en-data/dataset/hk-hko-rss-daily-grass-min-temp
+<h2>License</h2>
+This project is for educational purposes. Data provided by the Hong Kong Observatory under the Open Data License.
